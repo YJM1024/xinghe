@@ -1,30 +1,324 @@
 {
   "登记表名称": "DP-1 部署配置登记表",
-  "登记表版本": "DP-1@v1",
+  "登记表版本": "DP-1@v2",
   "部署形态": "单机",
-  "配置版本号": "dp1-local-20261122-01",
-  "生效日期": "2026-11-22",
+  "模式支持说明": "本登记表默认按单机模式（local）提供实例启动基准，同时在租户清单与 type_deployments（及同义键 类型部署取值）中完整覆盖多租户代表配置说明，包含跨租户 25a 为“是”的代表类型（T006、T046、T065）、25a 为“仅特定场景”的代表类型（T011，附四件场景清单与 A2 审批档）、高合规代表类型（T052、T055、T072，均附冻结的 obligation_list_ref 与控件映射）以及 external_subjects 外部持证主体子表（对应 34 v1.8 §4.9、R24 与 D36）。",
+  "配置版本号": "dp1-20261128-v1",
+  "生效日期": "2026-11-28",
   "租户清单": [
     {
       "租户 id": "local",
       "名称": "本机单租户（单机部署默认租户）",
-      "租户配置版本": "local@dp1-local-20261122-01"
+      "租户配置版本": "local@dp1-20261128-v1",
+      "适用模式": "单机默认"
+    },
+    {
+      "租户 id": "tenant-platsec",
+      "名称": "平台安全与运维租户（多租户代表配置）",
+      "租户配置版本": "tenant-platsec@dp1-20261128-v1",
+      "适用模式": "多租户代表配置"
+    },
+    {
+      "租户 id": "tenant-ops-db",
+      "名称": "数据库运维共享平台租户（多租户代表配置）",
+      "租户配置版本": "tenant-ops-db@dp1-20261128-v1",
+      "适用模式": "多租户代表配置"
+    },
+    {
+      "租户 id": "tenant-data-hub",
+      "名称": "数据平台聚合分析租户（多租户代表配置）",
+      "租户配置版本": "tenant-data-hub@dp1-20261128-v1",
+      "适用模式": "多租户代表配置"
+    },
+    {
+      "租户 id": "tenant-invest-dd",
+      "名称": "出资方尽调项目租户（多租户代表配置）",
+      "租户配置版本": "tenant-invest-dd@dp1-20261128-v1",
+      "适用模式": "多租户代表配置"
+    },
+    {
+      "租户 id": "tenant-biz-a",
+      "名称": "被服务业务租户 A（多租户代表配置）",
+      "租户配置版本": "tenant-biz-a@dp1-20261128-v1",
+      "适用模式": "多租户代表配置"
     }
   ],
   "类型部署取值": [
     {
       "类型 id@版本": "T065-security-scan@v1",
       "类型名称": "安全巡检 Agent",
+      "25a_取值": "是",
       "部署取值": "local",
-      "取值依据": "单机部署固定取 local、不跨租户（34 §4.2.25 25b 说明；R19 单机取 local）",
-      "接收方租户": "—（单机部署无独立接收方租户）"
+      "多租户代表部署取值": "tenant-platsec",
+      "取值依据": "单机默认取 local；多租户部署下由平台安全租户 tenant-platsec 扫描被服务业务租户 tenant-biz-a 的集群资产（34 v1.8 §4.2.25；R19）",
+      "接收方租户": "tenant-platsec",
+      "跨租户审批角色与档位": "平台安全负责人 + 合规负责人（A3 双人审批）",
+      "高合规": false,
+      "obligation_list_ref": "—（非高合规，H5 与 H6 命中 2 条）"
+    },
+    {
+      "类型 id@版本": "T006-db-migration@v1",
+      "类型名称": "数据库迁移 Agent",
+      "25a_取值": "是",
+      "部署取值": "local",
+      "多租户代表部署取值": "tenant-ops-db",
+      "取值依据": "25a 为“是”的代表类型：多租户共享库架构下，由平台数据库运维租户 tenant-ops-db 执行跨租户表结构迁移与回滚演练，作用流向覆盖共享库内各业务租户数据行（合同依据：DB-SLA-2026-04 第 8 条）",
+      "接收方租户": "tenant-biz-a",
+      "跨租户审批角色与档位": "平台运维负责人 + 合规负责人（A3 事前备案与双人审批，外聘顾问复核绑定 EXT-COMP-002）",
+      "高合规": false,
+      "obligation_list_ref": "—（非高合规，0 条命中）"
+    },
+    {
+      "类型 id@版本": "T046-due-diligence@v1",
+      "类型名称": "尽调 Agent",
+      "25a_取值": "是",
+      "部署取值": "local",
+      "多租户代表部署取值": "tenant-invest-dd",
+      "取值依据": "25a 为“是”的代表类型：跨法人或跨主体投资尽调时，目标公司授权材料与关联方数据进入出资方项目租户 tenant-invest-dd，并由外部持证所 EXT-LAW-001 协同核验（合同依据：DD-NDA-2026-11 第 5 条）",
+      "接收方租户": "tenant-invest-dd",
+      "跨租户审批角色与档位": "出资方负责人 + 合规负责人（A3 双人审批，关联外部主体 EXT-LAW-001 与 EXT-COMP-002）",
+      "高合规": false,
+      "obligation_list_ref": "—（非高合规，H5 命中 1 条）"
+    },
+    {
+      "类型 id@版本": "T011-data-pipeline@v1",
+      "类型名称": "数据管线与分析 Agent",
+      "25a_取值": "仅特定场景",
+      "部署取值": "local",
+      "多租户代表部署取值": "tenant-data-hub",
+      "取值依据": "25a 为“仅特定场景”的代表类型：日常单租户数仓分析不跨租户；仅在跨租户行业基准对比且满足 k-匿名阈值时进入跨租户聚合场景（34 v1.8 §4.2.25 场景清单四件）",
+      "接收方租户": "tenant-data-hub",
+      "跨租户审批角色与档位": "数据保护负责人 + 合规负责人（档位 A2）",
+      "场景清单": [
+        {
+          "场景名": "跨租户行业基准聚合对比",
+          "触发条件": "仅在发起跨租户基准统计且输入数据集已完成去标识化并通过 k-匿名阈值（k >= 10）校验时触发",
+          "参与方": "数据源业务租户 tenant-biz-a、数据平台聚合租户 tenant-data-hub",
+          "审批角色与档位": "数据保护负责人 + 合规负责人，审批档位 A2"
+        }
+      ],
+      "高合规": false,
+      "obligation_list_ref": "—（非高合规，0 条命中）"
+    },
+    {
+      "类型 id@版本": "T052-tax-advisory@v1",
+      "类型名称": "税务咨询 Agent",
+      "25a_取值": "仅特定场景",
+      "部署取值": "local",
+      "多租户代表部署取值": "tenant-biz-a",
+      "取值依据": "高合规代表类型（命中 H3/H5/H6）：企业内部涉税自查在单租户内完成；委托外部持证税务师事务所 EXT-LAW-001 鉴证时按受托场景流转（合同依据：TAX-ENG-2026-08 第 3 条）",
+      "接收方租户": "tenant-biz-a",
+      "跨租户审批角色与档位": "税务合规负责人 + 数据保护负责人（高合规上调至 A3 并加外部持证主体 EXT-LAW-001 报备）",
+      "高合规": true,
+      "命中条件": [
+        "H3 许可证依赖",
+        "H5 记录留存义务",
+        "H6 第三方审计权"
+      ],
+      "obligation_list_ref": "obligation_list@T052-v1.8-frozen",
+      "控件映射": {
+        "H3_许可证依赖": "T 行 5 资质四件（绑定外部持证主体 EXT-LAW-001 涉税服务证照与有效期）+ T 行 4 适用域四维前置条件 + I 行 8 资质校验执行证据",
+        "H5_记录留存义务": "T 行 12 记录三性（不可篡改=真、只追加=真、监管直读=真）与法定留存期限 10 年（自咨询报告交付起算）+ I 行 8 三性落盘证明",
+        "H6_第三方审计权": "T 行 12 监管直读通道 + T 行 13 依据留痕（每次运行记录税法条文版本与事实快照）+ T 行 11 一级证据强度 + I 行 8 审计只读凭据"
+      }
+    },
+    {
+      "类型 id@版本": "T055-medical-record@v1",
+      "类型名称": "医疗信息整理 Agent",
+      "25a_取值": "否",
+      "部署取值": "local",
+      "多租户代表部署取值": "tenant-biz-a",
+      "取值依据": "高合规代表类型（命中 H1 人身安全）：病历与检查报告整理限定在患者本人或就诊机构单租户内，不跨租户流转",
+      "接收方租户": "—（25a 为否，无跨租户接收方）",
+      "跨租户审批角色与档位": "—（25a 为否；因命中 H1 高合规，实例动作审批档按 R14 上调至 A2/A3）",
+      "高合规": true,
+      "命中条件": [
+        "H1 人身安全"
+      ],
+      "obligation_list_ref": "obligation_list@T055-v1.8-frozen",
+      "控件映射": {
+        "H1_人身安全_信息型替代控件": "采用信息型替代控件“红旗症状转介记录+就医提示留痕”：T 行 5 环境三段标注非临床诊断环境与人身风险高 + T 行 8 边界强制偏误拦（触发胸痛、呼吸困难等红旗词表立即停止摘要并输出急诊转介提示）+ I 行 8 落盘红旗症状转介记录与就医提示留痕 + I 行 9 审批与复核记录"
+      }
+    },
+    {
+      "类型 id@版本": "T072-health-assistant@v1",
+      "类型名称": "健康信息助理 Agent",
+      "25a_取值": "否",
+      "部署取值": "local",
+      "多租户代表部署取值": "local",
+      "取值依据": "高合规代表类型（命中 H1 人身安全）：个人域单用户单租户，健康问答数据不出本实例",
+      "接收方租户": "—（25a 为否，无跨租户接收方）",
+      "跨租户审批角色与档位": "—（25a 为否；命中 H1 高合规，边界阈值变更审批上调至 A2）",
+      "高合规": true,
+      "命中条件": [
+        "H1 人身安全"
+      ],
+      "obligation_list_ref": "obligation_list@T072-v1.8-frozen",
+      "控件映射": {
+        "H1_人身安全_信息型替代控件": "采用信息型替代控件“红旗症状转介记录+就医提示留痕”：T 行 5 环境三段声明生活信息辅助且人身风险高 + T 行 8 边界设置红旗症状零漏判偏误拦规则与禁开处方剂量禁区 + I 行 8 逐次落盘红旗症状转介记录与就医提示留痕 + I 行 14 急停转介事件留痕"
+      }
     }
   ],
-  "覆盖范围说明": "本表只登记当前部署里已有类型定义与实例记录的类型版本 T065-security-scan@v1。48 回填表其余 40 型只有 25a 建议值草案，没有类型版本、类型定义与实例记录，25b 没有可登记的对象；待这些类型按 F1 注册并通过 A1 至 A8 后再逐型补登。",
-  "字段口径说明": "部署形态、租户清单、租户 id、租户配置版本与部署取值均沿用 34 v1.5 §4.2.25 的 25b 口径：25b 由部署配置生成，不写入 T 表，也不写入 25a；租户配置版本按 `租户id@配置版本` 书写，与 I 表第 13 项同形。本表不登记 25a 取值，25a 仍是类型级声明，由类型定义承载（本部署目前只有 48 的草案回填）。",
-  "登记时间": "2026-11-22T12:25:00+08:00",
-  "登记人": "记录者（本次设计验证的记录者，非运行时）",
+  "type_deployments": [
+    {
+      "type_id": "T065-security-scan@v1",
+      "type_name": "安全巡检 Agent",
+      "cross_tenant_25a": "是",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-platsec",
+      "receiver_tenant": "tenant-platsec",
+      "high_compliance": false,
+      "obligation_list_ref": "—"
+    },
+    {
+      "type_id": "T006-db-migration@v1",
+      "type_name": "数据库迁移 Agent",
+      "cross_tenant_25a": "是",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-ops-db",
+      "receiver_tenant": "tenant-biz-a",
+      "high_compliance": false,
+      "obligation_list_ref": "—"
+    },
+    {
+      "type_id": "T046-due-diligence@v1",
+      "type_name": "尽调 Agent",
+      "cross_tenant_25a": "是",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-invest-dd",
+      "receiver_tenant": "tenant-invest-dd",
+      "high_compliance": false,
+      "obligation_list_ref": "—"
+    },
+    {
+      "type_id": "T011-data-pipeline@v1",
+      "type_name": "数据管线与分析 Agent",
+      "cross_tenant_25a": "仅特定场景",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-data-hub",
+      "receiver_tenant": "tenant-data-hub",
+      "scenario_list": [
+        {
+          "场景名": "跨租户行业基准聚合对比",
+          "触发条件": "仅在发起跨租户基准统计且输入数据集已完成去标识化并通过 k-匿名阈值（k >= 10）校验时触发",
+          "参与方": "数据源业务租户 tenant-biz-a、数据平台聚合租户 tenant-data-hub",
+          "审批角色与档位": "数据保护负责人 + 合规负责人，审批档位 A2"
+        }
+      ],
+      "high_compliance": false,
+      "obligation_list_ref": "—"
+    },
+    {
+      "type_id": "T052-tax-advisory@v1",
+      "type_name": "税务咨询 Agent",
+      "cross_tenant_25a": "仅特定场景",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-biz-a",
+      "receiver_tenant": "tenant-biz-a",
+      "high_compliance": true,
+      "hit_criteria": [
+        "H3",
+        "H5",
+        "H6"
+      ],
+      "obligation_list_ref": "obligation_list@T052-v1.8-frozen",
+      "control_mapping": {
+        "H3": "T 行 5 资质四件（绑定 EXT-LAW-001）+ T 行 4 适用域四维 + I 行 8 执行证据",
+        "H5": "T 行 12 记录三性全真与 10 年留存期 + I 行 8 三性落盘证明",
+        "H6": "T 行 12 监管直读 + T 行 13 依据留痕 + T 行 11 一级证据 + I 行 8 直读凭据"
+      }
+    },
+    {
+      "type_id": "T055-medical-record@v1",
+      "type_name": "医疗信息整理 Agent",
+      "cross_tenant_25a": "否",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "tenant-biz-a",
+      "receiver_tenant": "—",
+      "high_compliance": true,
+      "hit_criteria": [
+        "H1"
+      ],
+      "obligation_list_ref": "obligation_list@T055-v1.8-frozen",
+      "control_mapping": {
+        "H1": "信息型替代控件：红旗症状转介记录+就医提示留痕（T 行 5 环境三段 + T 行 8 偏误拦红旗词表 + I 行 8 转介记录与就医提示留痕 + I 行 9 审批记录）"
+      }
+    },
+    {
+      "type_id": "T072-health-assistant@v1",
+      "type_name": "健康信息助理 Agent",
+      "cross_tenant_25a": "否",
+      "deploy_value_single": "local",
+      "deploy_value_multi": "local",
+      "receiver_tenant": "—",
+      "high_compliance": true,
+      "hit_criteria": [
+        "H1"
+      ],
+      "obligation_list_ref": "obligation_list@T072-v1.8-frozen",
+      "control_mapping": {
+        "H1": "信息型替代控件：红旗症状转介记录+就医提示留痕（T 行 5 环境三段 + T 行 8 偏误拦零漏判规则 + I 行 8 转介记录与就医提示留痕 + I 行 14 事件留痕）"
+      }
+    }
+  ],
+  "external_subjects": [
+    {
+      "subject_id": "EXT-LAW-001",
+      "主体编号": "EXT-LAW-001",
+      "name": "正信涉税与法律联合持证事务所",
+      "名称": "正信涉税与法律联合持证事务所",
+      "license_type_and_no": "税务师事务所行政登记证书（证号：3100020240089）/ 律师事务所执业许可证（证号：23101201810452）",
+      "证照类型与编号": "税务师事务所行政登记证书（证号：3100020240089）/ 律师事务所执业许可证（证号：23101201810452）",
+      "issuing_authority": "国家税务总局上海市税务局 / 上海市司法局",
+      "发证机关": "国家税务总局上海市税务局 / 上海市司法局",
+      "valid_from": "2024-01-01",
+      "valid_to": "2029-12-31",
+      "有效期起止": "2024-01-01 至 2029-12-31",
+      "liability_agreement_ref": "AGR-EXT-LAW-2026-001（《外部涉税鉴证与法律尽调受托责任边界协议》第 4 条至第 9 条，明确鉴证签章与法定报送责任由持证所承担，智能体仅提供底稿整理）",
+      "责任边界协议引用": "AGR-EXT-LAW-2026-001（《外部涉税鉴证与法律尽调受托责任边界协议》第 4 条至第 9 条）",
+      "linked_types": [
+        "T052-tax-advisory@v1",
+        "T046-due-diligence@v1"
+      ],
+      "关联类型清单": [
+        "T052-tax-advisory@v1",
+        "T046-due-diligence@v1"
+      ],
+      "租户映射": "tenant-biz-a（不占租户 id，不进 25b 租户清单，按 34 v1.8 §4.9 登记）",
+      "审批档绑定": "A3（高合规涉税鉴证与跨主体尽调复核）"
+    },
+    {
+      "subject_id": "EXT-COMP-002",
+      "主体编号": "EXT-COMP-002",
+      "name": "明矩企业数据与内控外聘合规顾问事务所",
+      "名称": "明矩企业数据与内控外聘合规顾问事务所",
+      "license_type_and_no": "法律职业资格与企业合规师执业登记证（证号：A20213101050982 / CC-2025-0419）",
+      "证照类型与编号": "法律职业资格与企业合规师执业登记证（证号：A20213101050982 / CC-2025-0419）",
+      "issuing_authority": "中华人民共和国司法部 / 企业合规执业登记委员会",
+      "发证机关": "中华人民共和国司法部 / 企业合规执业登记委员会",
+      "valid_from": "2025-03-01",
+      "valid_to": "2028-02-29",
+      "有效期起止": "2025-03-01 至 2028-02-29",
+      "liability_agreement_ref": "AGR-EXT-COMP-2026-002（《小组织外聘合规顾问独立审批与职责分离协议》第 3 条至第 7 条，按 D36 与 R25 绑定 A3 审批档并执行外部报备，解决小组织类型所有者与合规负责人同人冲突）",
+      "责任边界协议引用": "AGR-EXT-COMP-2026-002（《小组织外聘合规顾问独立审批与职责分离协议》第 3 条至第 7 条，绑定 A3 审批档）",
+      "linked_types": [
+        "T006-db-migration@v1",
+        "T046-due-diligence@v1"
+      ],
+      "关联类型清单": [
+        "T006-db-migration@v1",
+        "T046-due-diligence@v1"
+      ],
+      "租户映射": "local（小组织单机或共享库跨租户独立第二审批角色，不占租户 id，不进 25b）",
+      "审批档绑定": "A3（按 D36 与 34 v1.8 R25 绑定 A3 审批档加外部报备）"
+    }
+  ],
+  "覆盖范围说明": "本表（DP-1@v2）在 T065-security-scan@v1 的基础上，新增 6 个代表类型（跨租户 25a 为是的 T006、T046，25a 为仅特定场景的 T011，高合规的 T052、T055、T072），共登记 7 个类型版本，并新增 external_subjects 外部持证主体子表登记 EXT-LAW-001 与 EXT-COMP-002。",
+  "字段口径说明": "部署形态、租户清单、租户 id、租户配置版本、类型部署取值（type_deployments）与外部持证主体子表（external_subjects）严格遵循 34 v1.8 §4.2.25、§4.9、R17、R19、R24、R25 及 D35、D36 口径。外部主体只在本子表登记，不占租户 id、不混入租户清单。",
+  "登记时间": "2026-11-28T01:35:00+08:00",
+  "登记人": "闭环样板与部署配置 owner",
   "关联记录": [
-    "50-I表记录-T065-v0.json：租户上下文写 `local@missing_dp1`，本表建立后该记录的配置版本引用仍不可解析，按 R19 记警告，不改原记录。"
+    "50-I表记录-T065-v1.json：租户上下文已更新为 local@dp1-20261128-v1，与本表配置版本号完全一致，missing_dp1 已清零。",
+    "dp/session-S01.md 与 dp/spec-W01-T065.md：绑定工作项 W-01 与冻结版任务规范 spec-W01-T065@v1。"
   ]
 }
